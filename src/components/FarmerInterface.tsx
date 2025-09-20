@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { MapPin, Camera, Upload, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import mobileApp from "@/assets/mobile-app.jpg";
+import { supabase } from "@/integrations/supabase/client";
 
 export const FarmerInterface = () => {
   const [collectionData, setCollectionData] = useState({
@@ -16,11 +17,40 @@ export const FarmerInterface = () => {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [txInfo, setTxInfo] = useState<{ hash: string; txId: string } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
-    setTimeout(() => setIsSubmitted(false), 3000);
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke("blockchain-log", {
+        body: {
+          action: "collection",
+          payload: {
+            herb_type: collectionData.herb,
+            quantity: parseFloat(collectionData.quantity || "0"),
+            quality_grade: collectionData.quality,
+            location_lat: 28.6139,
+            location_lng: 77.2090,
+            location_address: "Auto-detected",
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      setTxInfo({
+        hash: data?.blockchain_hash,
+        txId: data?.transaction_id,
+      });
+      setIsSubmitted(true);
+      setTimeout(() => setIsSubmitted(false), 3500);
+    } catch (err) {
+      console.error("Blockchain submission failed", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -61,23 +91,23 @@ export const FarmerInterface = () => {
               </CardHeader>
               <CardContent className="p-6 space-y-6">
                 {isSubmitted ? (
-                  <div className="text-center py-8">
-                    <CheckCircle className="w-16 h-16 mx-auto text-herb-green mb-4" />
-                    <h3 className="text-2xl font-semibold text-herb-green mb-2">
-                      Collection Recorded!
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Data successfully added to blockchain with timestamp: {new Date().toLocaleString()}
-                    </p>
-                    <div className="bg-herb-green/10 rounded-lg p-4 mt-4">
-                      <p className="text-sm font-mono">
-                        Block Hash: 0x7a8b...4c2d
+                    <div className="text-center py-8">
+                      <CheckCircle className="w-16 h-16 mx-auto text-herb-green mb-4" />
+                      <h3 className="text-2xl font-semibold text-herb-green mb-2">
+                        Collection Recorded!
+                      </h3>
+                      <p className="text-muted-foreground">
+                        Data successfully added to blockchain with timestamp: {new Date().toLocaleString()}
                       </p>
-                      <p className="text-sm font-mono">
-                        Transaction ID: txn_789...xyz
-                      </p>
+                      <div className="bg-herb-green/10 rounded-lg p-4 mt-4">
+                        <p className="text-sm font-mono break-all">
+                          Block Hash: {txInfo?.hash ?? "—"}
+                        </p>
+                        <p className="text-sm font-mono break-all">
+                          Transaction ID: {txInfo?.txId ?? "—"}
+                        </p>
+                      </div>
                     </div>
-                  </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -153,8 +183,8 @@ export const FarmerInterface = () => {
                       </Button>
                     </div>
 
-                    <Button type="submit" className="w-full bg-gradient-to-r from-herb-green to-herb-sage">
-                      Submit to Blockchain
+                    <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-herb-green to-herb-sage">
+                      {loading ? "Submitting..." : "Submit to Blockchain"}
                     </Button>
                   </form>
                 )}

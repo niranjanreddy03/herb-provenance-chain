@@ -14,7 +14,211 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      batches: {
+        Row: {
+          batch_id: string
+          blockchain_hash: string | null
+          certifications: string[] | null
+          collection_ids: string[] | null
+          created_at: string
+          expiry_date: string | null
+          id: string
+          packaging_date: string | null
+          product_name: string
+          qr_code_data: string | null
+          status: string | null
+        }
+        Insert: {
+          batch_id: string
+          blockchain_hash?: string | null
+          certifications?: string[] | null
+          collection_ids?: string[] | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          packaging_date?: string | null
+          product_name: string
+          qr_code_data?: string | null
+          status?: string | null
+        }
+        Update: {
+          batch_id?: string
+          blockchain_hash?: string | null
+          certifications?: string[] | null
+          collection_ids?: string[] | null
+          created_at?: string
+          expiry_date?: string | null
+          id?: string
+          packaging_date?: string | null
+          product_name?: string
+          qr_code_data?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      herb_collections: {
+        Row: {
+          blockchain_hash: string | null
+          collection_date: string
+          created_at: string
+          documents: string[] | null
+          herb_type: string
+          id: string
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          photos: string[] | null
+          quality_grade: string
+          quantity: number
+          status: string | null
+          transaction_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          blockchain_hash?: string | null
+          collection_date?: string
+          created_at?: string
+          documents?: string[] | null
+          herb_type: string
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          photos?: string[] | null
+          quality_grade: string
+          quantity: number
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          blockchain_hash?: string | null
+          collection_date?: string
+          created_at?: string
+          documents?: string[] | null
+          herb_type?: string
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          photos?: string[] | null
+          quality_grade?: string
+          quantity?: number
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      lab_test_results: {
+        Row: {
+          blockchain_hash: string | null
+          collection_id: string | null
+          created_at: string
+          id: string
+          lab_certificate: string | null
+          lab_name: string
+          moisture_percentage: number | null
+          pesticide_details: string | null
+          pesticides_detected: boolean | null
+          purity_percentage: number | null
+          test_date: string
+        }
+        Insert: {
+          blockchain_hash?: string | null
+          collection_id?: string | null
+          created_at?: string
+          id?: string
+          lab_certificate?: string | null
+          lab_name: string
+          moisture_percentage?: number | null
+          pesticide_details?: string | null
+          pesticides_detected?: boolean | null
+          purity_percentage?: number | null
+          test_date?: string
+        }
+        Update: {
+          blockchain_hash?: string | null
+          collection_id?: string | null
+          created_at?: string
+          id?: string
+          lab_certificate?: string | null
+          lab_name?: string
+          moisture_percentage?: number | null
+          pesticide_details?: string | null
+          pesticides_detected?: boolean | null
+          purity_percentage?: number | null
+          test_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_test_results_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "herb_collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      supply_chain_events: {
+        Row: {
+          blockchain_hash: string | null
+          collection_id: string | null
+          created_at: string
+          event_date: string
+          event_type: string
+          id: string
+          location_address: string | null
+          location_lat: number | null
+          location_lng: number | null
+          metadata: Json | null
+          performed_by: string | null
+          status: string
+          transaction_id: string | null
+        }
+        Insert: {
+          blockchain_hash?: string | null
+          collection_id?: string | null
+          created_at?: string
+          event_date?: string
+          event_type: string
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          metadata?: Json | null
+          performed_by?: string | null
+          status: string
+          transaction_id?: string | null
+        }
+        Update: {
+          blockchain_hash?: string | null
+          collection_id?: string | null
+          created_at?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          location_address?: string | null
+          location_lat?: number | null
+          location_lng?: number | null
+          metadata?: Json | null
+          performed_by?: string | null
+          status?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supply_chain_events_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "herb_collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
