@@ -22,6 +22,16 @@ export const FarmerInterface = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!collectionData.herb || !collectionData.quantity || !collectionData.quality) {
+      console.error("Missing required fields");
+      alert("Please fill all required fields");
+      return;
+    }
+    
+    console.log("Starting blockchain submission...", collectionData);
+    
     try {
       setLoading(true);
       const { data, error } = await supabase.functions.invoke("blockchain-log", {
@@ -38,6 +48,8 @@ export const FarmerInterface = () => {
         },
       });
 
+      console.log("Edge function response:", { data, error });
+
       if (error) throw error;
 
       setTxInfo({
@@ -47,7 +59,8 @@ export const FarmerInterface = () => {
       setIsSubmitted(true);
       setTimeout(() => setIsSubmitted(false), 3500);
     } catch (err) {
-      console.error("Blockchain submission failed", err);
+      console.error("Blockchain submission failed:", err);
+      alert("Submission failed: " + (err.message || "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -112,11 +125,11 @@ export const FarmerInterface = () => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="herb-type">Herb Type</Label>
+                        <Label htmlFor="herb-type">Herb Type *</Label>
                         <Select value={collectionData.herb} onValueChange={(value) => 
                           setCollectionData(prev => ({...prev, herb: value}))
                         }>
-                          <SelectTrigger>
+                          <SelectTrigger className={!collectionData.herb ? "border-red-300" : ""}>
                             <SelectValue placeholder="Select herb" />
                           </SelectTrigger>
                           <SelectContent>
@@ -130,13 +143,14 @@ export const FarmerInterface = () => {
                       </div>
 
                       <div>
-                        <Label htmlFor="quantity">Quantity (kg)</Label>
+                        <Label htmlFor="quantity">Quantity (kg) *</Label>
                         <Input
                           id="quantity"
                           type="number"
                           placeholder="Enter weight"
                           value={collectionData.quantity}
                           onChange={(e) => setCollectionData(prev => ({...prev, quantity: e.target.value}))}
+                          className={!collectionData.quantity ? "border-red-300" : ""}
                         />
                       </div>
                     </div>
@@ -157,11 +171,11 @@ export const FarmerInterface = () => {
                     </div>
 
                     <div>
-                      <Label>Quality Assessment</Label>
+                      <Label>Quality Assessment *</Label>
                       <Select value={collectionData.quality} onValueChange={(value) => 
                         setCollectionData(prev => ({...prev, quality: value}))
                       }>
-                        <SelectTrigger>
+                        <SelectTrigger className={!collectionData.quality ? "border-red-300" : ""}>
                           <SelectValue placeholder="Select quality grade" />
                         </SelectTrigger>
                         <SelectContent>
