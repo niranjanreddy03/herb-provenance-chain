@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Leaf, Shield, MapPin, QrCode } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroFarm from "@/assets/hero-farm.jpg";
 
 export const HeroSection = () => {
@@ -31,22 +32,16 @@ export const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button
-              size="lg"
-              variant="hero"
-              className="text-lg px-8 py-4"
-              onClick={() => document.getElementById('farmer')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Start Tracking
-            </Button>
-            <Button
-              size="lg"
-              variant="outline-hero"
-              className="text-lg px-8 py-4"
-              onClick={() => document.getElementById('consumer')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              View Demo
-            </Button>
+            <Link to="/farmer">
+              <Button size="lg" variant="hero" className="text-lg px-8 py-4">
+                Start Tracking
+              </Button>
+            </Link>
+            <Link to="/consumer">
+              <Button size="lg" variant="outline-hero" className="text-lg px-8 py-4">
+                View Demo
+              </Button>
+            </Link>
           </div>
 
           {/* Feature Cards */}

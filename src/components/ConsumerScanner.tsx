@@ -1,228 +1,166 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { QrCode, MapPin, Calendar, Shield, Award, Leaf } from "lucide-react";
-import { useState } from "react";
+import { QRScanner } from "@/components/QRScanner";
+import { MapComponent } from "@/components/MapComponent";
+import { Scan, MapPin, Shield, CheckCircle } from "lucide-react";
 import ashwagandhaTrace from "@/assets/ashwagandha-trace.jpg";
 
 export const ConsumerScanner = () => {
-  const [scannedData, setScannedData] = useState(null);
+  const [scannedData, setScannedData] = useState<any>(null);
+  const [isScanning, setIsScanning] = useState(false);
 
-  const mockTraceabilityData = {
-    productName: "Organic Ashwagandha Root Powder",
-    batchId: "ASH-2024-001",
-    harvestDate: "2024-01-15",
-    farmLocation: "Rajasthan, India (26.9124° N, 75.7873° E)",
-    farmer: "Rajesh Kumar",
-    quality: "Premium Grade",
-    labResults: {
-      purity: "99.2%",
-      moisture: "8.1%",
-      pesticides: "Not Detected",
-    },
-    certifications: ["Organic", "Fair Trade", "Sustainable"],
-    blockchainHash: "0x7f9a8b2c...4e5d6789",
-    journey: [
-      {
-        stage: "Collection",
-        date: "2024-01-15",
-        location: "Organic Farm, Rajasthan",
-        status: "Verified",
-      },
-      {
-        stage: "Quality Testing",
-        date: "2024-01-18",
-        location: "Certified Lab, Jaipur",
-        status: "Passed",
-      },
-      {
-        stage: "Processing",
-        date: "2024-01-20",
-        location: "Processing Unit, Delhi",
-        status: "Completed",
-      },
-      {
-        stage: "Packaging",
-        date: "2024-01-22",
-        location: "Distribution Center, Mumbai",
-        status: "Ready for Dispatch",
-      },
-    ],
-  };
-
-  const handleScan = () => {
-    setScannedData(mockTraceabilityData);
+  const handleQRScan = (result: string) => {
+    try {
+      const data = JSON.parse(result);
+      setScannedData(data);
+      setIsScanning(false);
+    } catch (error) {
+      console.error('Invalid QR code data:', error);
+      setScannedData({ rawData: result });
+      setIsScanning(false);
+    }
   };
 
   return (
     <section className="py-20 bg-gradient-to-br from-herb-sage/10 to-herb-gold/10">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
+        <div className="text-center max-w-3xl mx-auto mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-herb-green to-herb-sage bg-clip-text text-transparent">
             Consumer Transparency Portal
           </h2>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Scan any QR code on your Ayurvedic products to see the complete journey from farm to shelf, verified by blockchain technology.
+          <p className="text-lg text-muted-foreground">
+            Scan QR codes on herb products to discover their complete journey from farm to shelf.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* QR Scanner Interface */}
-          <div className="space-y-8">
-            <Card className="text-center p-8 border-2 border-dashed border-herb-green/30 hover:border-herb-green/60 transition-colors">
-              <CardContent className="space-y-6">
-                <QrCode className="w-24 h-24 mx-auto text-herb-green" />
-                <h3 className="text-2xl font-semibold">Scan QR Code</h3>
-                <p className="text-muted-foreground">
-                  Point your camera at the QR code on your Ayurvedic product packaging
-                </p>
-                <Button onClick={handleScan} size="lg" className="bg-gradient-to-r from-herb-green to-herb-sage">
-                  {scannedData ? "Scan Another Product" : "Demo: Scan Ashwagandha"}
-                </Button>
-              </CardContent>
-            </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* QR Scanner Section */}
+          <div className="space-y-6">
+            <QRScanner 
+              onScan={handleQRScan}
+              isActive={isScanning}
+            />
+            
+            <div className="text-center">
+              <Button 
+                onClick={() => setIsScanning(!isScanning)}
+                size="lg"
+                className="bg-gradient-to-r from-herb-green to-herb-sage"
+              >
+                <Scan className="w-4 h-4 mr-2" />
+                {isScanning ? "Stop Scanner" : "Start QR Scanner"}
+              </Button>
+            </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Leaf className="w-6 h-6 text-herb-green" />
-                  Product Image
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <img
-                  src={ashwagandhaTrace}
-                  alt="Ashwagandha with traceability information"
-                  className="w-full rounded-lg shadow-md"
-                />
-              </CardContent>
-            </Card>
+            <div className="text-center">
+              <Button 
+                onClick={() => handleQRScan(JSON.stringify({
+                  transactionId: "TXN-2024-001",
+                  blockchainHash: "0x1a2b3c4d5e6f7g8h9i0j",
+                  herbType: "ashwagandha",
+                  quantity: "5",
+                  quality: "premium",
+                  location: "28.6139,77.2090",
+                  timestamp: "2024-01-15T10:30:00Z"
+                }))}
+                variant="outline"
+                size="sm"
+              >
+                Try Demo Data
+              </Button>
+            </div>
           </div>
 
-          {/* Traceability Results */}
+          {/* Results Display */}
           <div className="space-y-6">
             {scannedData ? (
               <>
-                <Card className="border-herb-green/20 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-herb-green to-herb-sage text-white">
+                <Card>
+                  <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Shield className="w-6 h-6" />
-                      {scannedData.productName}
+                      <Shield className="w-5 h-5 text-herb-green" />
+                      Blockchain Verification
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-4">
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <CheckCircle className="w-4 h-4" />
+                      <span className="font-medium">Verified on Blockchain</span>
+                    </div>
+                    {scannedData.transactionId && (
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Transaction ID:</strong> {scannedData.transactionId}
+                      </p>
+                    )}
+                    {scannedData.blockchainHash && (
+                      <p className="text-sm text-muted-foreground">
+                        <strong>Hash:</strong> {scannedData.blockchainHash}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Product Information</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-sm text-muted-foreground">Batch ID</p>
-                        <p className="font-semibold">{scannedData.batchId}</p>
+                        <p className="text-sm font-medium text-muted-foreground">Herb Type</p>
+                        <p className="capitalize">{scannedData.herbType || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Quality</p>
-                        <Badge variant="secondary" className="bg-herb-green/10 text-herb-green">
-                          {scannedData.quality}
+                        <p className="text-sm font-medium text-muted-foreground">Quantity</p>
+                        <p>{scannedData.quantity ? `${scannedData.quantity}kg` : 'N/A'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Quality Grade</p>
+                        <Badge variant="secondary" className="capitalize">
+                          {scannedData.quality || 'N/A'}
                         </Badge>
                       </div>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        Origin
-                      </p>
-                      <p className="font-semibold">{scannedData.farmLocation}</p>
-                      <p className="text-sm">Farmer: {scannedData.farmer}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        Harvest Date
-                      </p>
-                      <p className="font-semibold">{scannedData.harvestDate}</p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-2">Certifications</p>
-                      <div className="flex gap-2 flex-wrap">
-                        {scannedData.certifications.map((cert, index) => (
-                          <Badge key={index} variant="outline" className="border-herb-green text-herb-green">
-                            <Award className="w-3 h-3 mr-1" />
-                            {cert}
-                          </Badge>
-                        ))}
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Collection Date</p>
+                        <p>{scannedData.timestamp ? new Date(scannedData.timestamp).toLocaleDateString() : 'N/A'}</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Lab Test Results</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span>Purity</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {scannedData.labResults.purity}
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Moisture Content</span>
-                      <Badge variant="secondary">{scannedData.labResults.moisture}</Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Pesticide Residue</span>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {scannedData.labResults.pesticides}
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Supply Chain Journey</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {scannedData.journey.map((step, index) => (
-                        <div key={index} className="flex items-start gap-4">
-                          <div className="w-3 h-3 rounded-full bg-herb-green mt-2 flex-shrink-0" />
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-semibold">{step.stage}</h4>
-                                <p className="text-sm text-muted-foreground">{step.location}</p>
-                              </div>
-                              <div className="text-right">
-                                <Badge 
-                                  variant={step.status === 'Verified' || step.status === 'Passed' ? 'default' : 'secondary'}
-                                  className={step.status === 'Verified' || step.status === 'Passed' ? 'bg-herb-green' : ''}
-                                >
-                                  {step.status}
-                                </Badge>
-                                <p className="text-xs text-muted-foreground mt-1">{step.date}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-6 p-4 bg-muted rounded-lg">
-                      <p className="text-xs text-muted-foreground">Blockchain Verification</p>
-                      <p className="font-mono text-sm break-all">{scannedData.blockchainHash}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                {scannedData.location && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <MapPin className="w-5 h-5" />
+                        Collection Location
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <MapComponent 
+                        locations={[{
+                          lat: parseFloat(scannedData.location.split(',')[0]),
+                          lng: parseFloat(scannedData.location.split(',')[1]),
+                          title: `${scannedData.herbType || 'Herb'} Collection Site`,
+                          description: `Collected on ${scannedData.timestamp ? new Date(scannedData.timestamp).toLocaleDateString() : 'Unknown date'}`
+                        }]}
+                        height="250px"
+                      />
+                    </CardContent>
+                  </Card>
+                )}
               </>
             ) : (
-              <Card className="p-12 text-center border-dashed">
-                <CardContent>
-                  <QrCode className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Ready to Scan</h3>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Scan a QR Code to View Results</CardTitle>
+                </CardHeader>
+                <CardContent className="text-center py-12">
+                  <Scan className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
                   <p className="text-muted-foreground">
-                    Scan a QR code to view complete traceability information
+                    Use the scanner or try the demo data to see detailed traceability information.
                   </p>
                 </CardContent>
               </Card>

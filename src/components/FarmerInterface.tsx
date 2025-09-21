@@ -7,6 +7,9 @@ import { MapPin, Camera, Upload, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import mobileApp from "@/assets/mobile-app.jpg";
 import { supabase } from "@/integrations/supabase/client";
+import { QRGenerator } from "@/components/QRGenerator";
+import { MapComponent } from "@/components/MapComponent";
+import { useToast } from "@/hooks/use-toast";
 
 export const FarmerInterface = () => {
   const [collectionData, setCollectionData] = useState({
@@ -66,6 +69,17 @@ export const FarmerInterface = () => {
     }
   };
 
+  // Generate QR code data with blockchain info
+  const qrData = txInfo ? JSON.stringify({
+    transactionId: txInfo.txId,
+    blockchainHash: txInfo.hash,
+    herbType: collectionData.herb,
+    quantity: collectionData.quantity,
+    quality: collectionData.quality,
+    location: "28.6139,77.2090", // Using fixed coordinates for now
+    timestamp: new Date().toISOString()
+  }) : "";
+
   return (
     <section className="py-20 bg-gradient-to-br from-background to-secondary/30">
       <div className="container mx-auto px-4">
@@ -103,24 +117,26 @@ export const FarmerInterface = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
-                {isSubmitted ? (
-                    <div className="text-center py-8">
-                      <CheckCircle className="w-16 h-16 mx-auto text-herb-green mb-4" />
-                      <h3 className="text-2xl font-semibold text-herb-green mb-2">
-                        Collection Recorded!
-                      </h3>
-                      <p className="text-muted-foreground">
-                        Data successfully added to blockchain with timestamp: {new Date().toLocaleString()}
-                      </p>
-                      <div className="bg-herb-green/10 rounded-lg p-4 mt-4">
-                        <p className="text-sm font-mono break-all">
-                          Block Hash: {txInfo?.hash ?? "—"}
-                        </p>
-                        <p className="text-sm font-mono break-all">
-                          Transaction ID: {txInfo?.txId ?? "—"}
-                        </p>
+                {isSubmitted && txInfo ? (
+                  <div className="space-y-6">
+                    <div className="text-center p-6 bg-green-50 border border-green-200 rounded-lg">
+                      <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-green-800 mb-2">Successfully Logged to Blockchain!</h3>
+                      <div className="space-y-2 text-sm text-green-700">
+                        <p><strong>Transaction ID:</strong> {txInfo.txId}</p>
+                        <p><strong>Blockchain Hash:</strong> {txInfo.hash}</p>
+                        <p><strong>Herb:</strong> {collectionData.herb}</p>
+                        <p><strong>Quantity:</strong> {collectionData.quantity}kg</p>
+                        <p><strong>Quality:</strong> {collectionData.quality}</p>
                       </div>
                     </div>
+
+                    <QRGenerator 
+                      data={qrData}
+                      title="Herb Collection QR Code"
+                      size={300}
+                    />
+                  </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

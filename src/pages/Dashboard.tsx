@@ -1,17 +1,17 @@
+import { TraceabilityDashboard } from "@/components/TraceabilityDashboard";
 import { Navigation } from "@/components/Navigation";
-import { HeroSection } from "@/components/HeroSection";
 import { Footer } from "@/components/Footer";
 
-const Home = () => {
+const Dashboard = () => {
   return (
     <div className="min-h-screen">
       <Navigation />
-      <main>
-        <HeroSection />
+      <main className="pt-16">
+        <TraceabilityDashboard />
       </main>
       <Footer />
     </div>
   );
 };
 
-export default Home;
+export default Dashboard;
