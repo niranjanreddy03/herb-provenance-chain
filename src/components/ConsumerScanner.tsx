@@ -5,15 +5,53 @@ import { Badge } from "@/components/ui/badge";
 import { QRScanner } from "@/components/QRScanner";
 import { MapComponent } from "@/components/MapComponent";
 import { Scan, MapPin, Shield, CheckCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import ashwagandhaTrace from "@/assets/ashwagandha-trace.jpg";
 
 export const ConsumerScanner = () => {
   const [scannedData, setScannedData] = useState<any>(null);
+  const { toast } = useToast();
 
-  const handleQRScan = (result: string) => {
+  const handleQRScan = async (result: string) => {
     try {
-      const data = JSON.parse(result);
-      setScannedData(data);
+      // First try to parse as JSON (direct QR data)
+      let qrData;
+      try {
+        qrData = JSON.parse(result);
+      } catch {
+        // If not JSON, treat as raw data
+        qrData = { rawData: result };
+      }
+
+      // If we have structured QR data, fetch full details from backend
+      if (qrData.transactionId || qrData.id) {
+        console.log('Fetching product details for QR data:', qrData);
+        
+        const { data: productDetails, error } = await supabase.functions.invoke('get-product-details', {
+          body: { qrData: result }
+        });
+
+        if (error) {
+          console.error('Error fetching product details:', error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch product details",
+            variant: "destructive",
+          });
+          setScannedData(qrData); // Fall back to original QR data
+        } else {
+          console.log('Successfully fetched product details:', productDetails);
+          setScannedData(productDetails);
+          toast({
+            title: "Product Verified",
+            description: "Successfully retrieved blockchain-verified product details",
+          });
+        }
+      } else {
+        // Use original QR data if no transaction ID
+        setScannedData(qrData);
+      }
     } catch (error) {
       console.error('Invalid QR code data:', error);
       setScannedData({ rawData: result });
@@ -41,13 +79,18 @@ export const ConsumerScanner = () => {
             <div 
               className="text-center opacity-30 hover:opacity-60 transition-opacity"
               onDoubleClick={() => handleQRScan(JSON.stringify({
-                transactionId: "TXN-2024-001",
-                blockchainHash: "0x1a2b3c4d5e6f7g8h9i0j",
+                id: "demo-id-12345",
+                transactionId: "txn_demo123456789",
+                blockchainHash: "0x1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7q8r9s0t",
                 herbType: "ashwagandha",
                 quantity: "5",
                 quality: "premium",
                 location: "28.6139,77.2090",
-                timestamp: "2024-01-15T10:30:00Z"
+                locationAddress: "Organic Farm, Delhi Region, India",
+                timestamp: "2024-01-15T10:30:00Z",
+                collectionDate: "2024-01-15T10:30:00Z",
+                verified: true,
+                status: "recorded"
               }))}
             >
               <p className="text-xs text-muted-foreground cursor-pointer">
@@ -113,7 +156,7 @@ export const ConsumerScanner = () => {
                   </CardContent>
                 </Card>
 
-                {scannedData.location && (
+                {(scannedData.location || scannedData.coordinates) && (
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -122,12 +165,17 @@ export const ConsumerScanner = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
+                      {scannedData.locationAddress && (
+                        <p className="text-sm text-muted-foreground mb-4">
+                          <strong>Address:</strong> {scannedData.locationAddress}
+                        </p>
+                      )}
                       <MapComponent 
                         locations={[{
-                          lat: parseFloat(scannedData.location.split(',')[0]),
-                          lng: parseFloat(scannedData.location.split(',')[1]),
+                          lat: scannedData.coordinates ? scannedData.coordinates.lat : parseFloat(scannedData.location.split(',')[0]),
+                          lng: scannedData.coordinates ? scannedData.coordinates.lng : parseFloat(scannedData.location.split(',')[1]),
                           title: `${scannedData.herbType || 'Herb'} Collection Site`,
-                          description: `Collected on ${scannedData.timestamp ? new Date(scannedData.timestamp).toLocaleDateString() : 'Unknown date'}`
+                          description: `Collected on ${scannedData.collectionDate ? new Date(scannedData.collectionDate).toLocaleDateString() : (scannedData.timestamp ? new Date(scannedData.timestamp).toLocaleDateString() : 'Unknown date')}`
                         }]}
                         height="250px"
                       />

@@ -2,3 +2,6 @@ project_id = "utxjrmowssnasvbxyshm"
 
 [functions.blockchain-log]
 verify_jwt = false
+
+[functions.get-product-details]
+verify_jwt = false

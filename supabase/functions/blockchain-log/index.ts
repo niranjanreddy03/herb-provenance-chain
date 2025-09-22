@@ -98,8 +98,35 @@ serve(async (req) => {
       });
     }
 
+    // Generate QR code data with all product information
+    const qrData = JSON.stringify({
+      id: data?.id,
+      transactionId: transaction_id,
+      blockchainHash: blockchain_hash,
+      herbType: herb_type,
+      quantity: quantity,
+      quality: quality_grade,
+      location: location_lat && location_lng ? `${location_lat},${location_lng}` : null,
+      locationAddress: location_address,
+      timestamp: new Date().toISOString(),
+      collectionDate: new Date().toISOString()
+    });
+
+    // Update the record with QR code data for future retrieval
+    await supabase
+      .from("herb_collections")
+      .update({ 
+        documents: [qrData] // Store QR data in documents array for retrieval
+      })
+      .eq("id", data?.id);
+
     return new Response(
-      JSON.stringify({ id: data?.id, blockchain_hash, transaction_id }),
+      JSON.stringify({ 
+        id: data?.id, 
+        blockchain_hash, 
+        transaction_id,
+        qr_data: qrData 
+      }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
