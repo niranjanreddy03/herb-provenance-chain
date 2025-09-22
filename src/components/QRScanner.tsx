@@ -19,7 +19,14 @@ export const QRScanner = ({ onScan, isActive = false }: QRScannerProps) => {
 
   useEffect(() => {
     // Check if camera is available
-    QrScanner.hasCamera().then(setHasCamera);
+    console.log('Checking camera availability...');
+    QrScanner.hasCamera().then(hasCamera => {
+      console.log('Camera available:', hasCamera);
+      setHasCamera(hasCamera);
+    }).catch(error => {
+      console.error('Error checking camera:', error);
+      setHasCamera(false);
+    });
 
     return () => {
       if (qrScannerRef.current) {
@@ -37,12 +44,23 @@ export const QRScanner = ({ onScan, isActive = false }: QRScannerProps) => {
   }, [isActive, isScanning, hasCamera]);
 
   const startScanning = async () => {
-    if (!videoRef.current || !hasCamera) return;
+    if (!videoRef.current || !hasCamera) {
+      console.log('Cannot start scanning:', { videoRef: !!videoRef.current, hasCamera });
+      return;
+    }
 
     try {
+      console.log('Starting QR scanner...');
+      
+      // Request camera permission first
+      await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+
       qrScannerRef.current = new QrScanner(
         videoRef.current,
         (result) => {
+          console.log('QR Code detected:', result.data);
           onScan(result.data);
           setIsScanning(false);
           toast({
@@ -56,12 +74,25 @@ export const QRScanner = ({ onScan, isActive = false }: QRScannerProps) => {
         }
       );
 
+      console.log('QR Scanner created, starting...');
       await qrScannerRef.current.start();
+      console.log('QR Scanner started successfully');
+      
     } catch (error) {
       console.error('Error starting QR scanner:', error);
+      
+      let errorMessage = "Failed to start camera scanner";
+      if (error.name === 'NotAllowedError') {
+        errorMessage = "Camera permission denied. Please allow camera access and try again.";
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = "No camera found on this device.";
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = "Camera not supported on this device.";
+      }
+      
       toast({
         title: "Scanner Error",
-        description: "Failed to start camera scanner",
+        description: errorMessage,
         variant: "destructive",
       });
       setIsScanning(false);

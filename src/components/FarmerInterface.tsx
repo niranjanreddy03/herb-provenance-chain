@@ -22,6 +22,7 @@ export const FarmerInterface = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [txInfo, setTxInfo] = useState<{ hash: string; txId: string } | null>(null);
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,6 +61,13 @@ export const FarmerInterface = () => {
         txId: data?.transaction_id,
       });
       setIsSubmitted(true);
+      
+      // Show success toast for QR generation
+      toast({
+        title: "Success!",
+        description: "Herb data logged to blockchain and QR code generated",
+      });
+      
       setTimeout(() => setIsSubmitted(false), 3500);
     } catch (err) {
       console.error("Blockchain submission failed:", err);
