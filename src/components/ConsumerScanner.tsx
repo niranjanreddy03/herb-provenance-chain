@@ -9,17 +9,14 @@ import ashwagandhaTrace from "@/assets/ashwagandha-trace.jpg";
 
 export const ConsumerScanner = () => {
   const [scannedData, setScannedData] = useState<any>(null);
-  const [isScanning, setIsScanning] = useState(false);
 
   const handleQRScan = (result: string) => {
     try {
       const data = JSON.parse(result);
       setScannedData(data);
-      setIsScanning(false);
     } catch (error) {
       console.error('Invalid QR code data:', error);
       setScannedData({ rawData: result });
-      setIsScanning(false);
     }
   };
 
@@ -38,38 +35,24 @@ export const ConsumerScanner = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* QR Scanner Section */}
           <div className="space-y-6">
-            <QRScanner 
-              onScan={handleQRScan}
-              isActive={isScanning}
-            />
+            <QRScanner onScan={handleQRScan} />
             
-            <div className="text-center">
-              <Button 
-                onClick={() => setIsScanning(!isScanning)}
-                size="lg"
-                className="bg-gradient-to-r from-herb-green to-herb-sage"
-              >
-                <Scan className="w-4 h-4 mr-2" />
-                {isScanning ? "Stop Scanner" : "Start QR Scanner"}
-              </Button>
-            </div>
-
-            <div className="text-center">
-              <Button 
-                onClick={() => handleQRScan(JSON.stringify({
-                  transactionId: "TXN-2024-001",
-                  blockchainHash: "0x1a2b3c4d5e6f7g8h9i0j",
-                  herbType: "ashwagandha",
-                  quantity: "5",
-                  quality: "premium",
-                  location: "28.6139,77.2090",
-                  timestamp: "2024-01-15T10:30:00Z"
-                }))}
-                variant="outline"
-                size="sm"
-              >
-                Try Demo Data
-              </Button>
+            {/* Demo functionality - hidden by default, can be activated with double-click */}
+            <div 
+              className="text-center opacity-30 hover:opacity-60 transition-opacity"
+              onDoubleClick={() => handleQRScan(JSON.stringify({
+                transactionId: "TXN-2024-001",
+                blockchainHash: "0x1a2b3c4d5e6f7g8h9i0j",
+                herbType: "ashwagandha",
+                quantity: "5",
+                quality: "premium",
+                location: "28.6139,77.2090",
+                timestamp: "2024-01-15T10:30:00Z"
+              }))}
+            >
+              <p className="text-xs text-muted-foreground cursor-pointer">
+                Double-click for demo
+              </p>
             </div>
           </div>
 
