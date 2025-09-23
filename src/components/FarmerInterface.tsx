@@ -141,8 +141,16 @@ export const FarmerInterface = () => {
 
                     <QRGenerator 
                       data={qrData}
-                      title="Herb Collection QR Code"
+                      title="Blockchain Product Label"
                       size={300}
+                      showBarcode={true}
+                      productInfo={{
+                        herbType: collectionData.herb,
+                        quantity: collectionData.quantity,
+                        quality: collectionData.quality,
+                        transactionId: txInfo.txId,
+                        collectionDate: new Date().toISOString()
+                      }}
                     />
                   </div>
                 ) : (
