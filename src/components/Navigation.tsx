@@ -1,11 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Leaf, Menu, X } from "lucide-react";
+import { Leaf, Menu, X, User, LogOut } from "lucide-react";
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Navigation = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut, loading } = useAuth();
 
   const navItems = [
     { label: "Home", href: "/" },
@@ -14,6 +17,19 @@ export const Navigation = () => {
     { label: "Dashboard", href: "/dashboard" },
     { label: "About", href: "/about" },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
+
+  const handleSignIn = () => {
+    navigate('/auth');
+  };
+
+  const handleGetStarted = () => {
+    navigate('/auth');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
@@ -46,10 +62,30 @@ export const Navigation = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="outline">Sign In</Button>
-            <Button className="bg-gradient-to-r from-herb-green to-herb-sage">
-              Get Started
-            </Button>
+            {loading ? (
+              <div className="w-20 h-9 bg-muted animate-pulse rounded"></div>
+            ) : user ? (
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <User className="w-4 h-4" />
+                  <span className="max-w-32 truncate">{user.email}</span>
+                </div>
+                <Button variant="outline" onClick={handleSignOut} size="sm">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button variant="outline" onClick={handleSignIn}>Sign In</Button>
+                <Button 
+                  className="bg-gradient-to-r from-herb-green to-herb-sage"
+                  onClick={handleGetStarted}
+                >
+                  Get Started
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -82,12 +118,32 @@ export const Navigation = () => {
                 </Link>
               ))}
               <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full">
-                  Sign In
-                </Button>
-                <Button className="w-full bg-gradient-to-r from-herb-green to-herb-sage">
-                  Get Started
-                </Button>
+                {loading ? (
+                  <div className="w-full h-9 bg-muted animate-pulse rounded"></div>
+                ) : user ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground px-3 py-2">
+                      <User className="w-4 h-4" />
+                      <span className="truncate">{user.email}</span>
+                    </div>
+                    <Button variant="outline" className="w-full" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <Button variant="outline" className="w-full" onClick={handleSignIn}>
+                      Sign In
+                    </Button>
+                    <Button 
+                      className="w-full bg-gradient-to-r from-herb-green to-herb-sage"
+                      onClick={handleGetStarted}
+                    >
+                      Get Started
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
