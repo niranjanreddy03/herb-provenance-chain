@@ -1,6 +1,5 @@
 import { FarmerInterface } from "@/components/FarmerInterface";
 import { Navigation } from "@/components/Navigation";
-import { Footer } from "@/components/Footer";
 
 const Farmer = () => {
   return (
@@ -9,7 +8,6 @@ const Farmer = () => {
       <main className="pt-16">
         <FarmerInterface />
       </main>
-      <Footer />
     </div>
   );
 };
