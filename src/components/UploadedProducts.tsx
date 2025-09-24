@@ -30,15 +30,22 @@ export const UploadedProducts = () => {
   }, [user]);
 
   const fetchUploadedProducts = async () => {
-    if (!user) return;
+    console.log('Fetching products, user:', user);
+    if (!user) {
+      console.log('No user found, cannot fetch products');
+      setLoading(false);
+      return;
+    }
     
     try {
+      console.log('Making Supabase query for user:', user.id);
       const { data, error } = await supabase
         .from('herb_collections')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      console.log('Supabase response:', { data, error });
       if (error) throw error;
       setProducts(data || []);
     } catch (error) {
