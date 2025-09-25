@@ -26,8 +26,9 @@ serve(async (req) => {
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
     console.error("Missing Supabase env vars");
     return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
       status: 500,
@@ -36,6 +37,11 @@ serve(async (req) => {
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+  const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: {
+      headers: { Authorization: req.headers.get("Authorization") ?? "" },
+    },
+  });
 
   try {
     const body = await req.json();
@@ -58,6 +64,10 @@ serve(async (req) => {
       user_id,
     } = payload || {};
 
+    // Derive user from JWT if available
+    const { data: userData } = await userClient.auth.getUser();
+    const authUserId = userData?.user?.id ?? null;
+
     if (!herb_type || !quantity || !quality_grade) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
         status: 400,
@@ -75,7 +85,7 @@ serve(async (req) => {
       .from("herb_collections")
       .insert([
         {
-          user_id: user_id ?? null,
+          user_id: authUserId ?? user_id ?? null,
           herb_type,
           quantity,
           quality_grade,
@@ -131,7 +141,10 @@ serve(async (req) => {
     );
   } catch (e) {
     console.error("blockchain-log error:", e);
-    return new Response(JSON.stringify({ error: String(e?.message ?? e) }), {
+    const errMsg = (e && typeof e === "object" && "message" in e)
+      ? String((e as any).message)
+      : String(e);
+    return new Response(JSON.stringify({ error: errMsg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

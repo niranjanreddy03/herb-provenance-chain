@@ -29,6 +29,23 @@ export const UploadedProducts = () => {
     fetchUploadedProducts();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('herb-collections-inserts')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'herb_collections' }, (payload) => {
+        const newRow: any = (payload as any).new;
+        if (newRow?.user_id === user.id) {
+          setProducts((prev) => [newRow, ...prev]);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   const fetchUploadedProducts = async () => {
     console.log('Fetching products, user:', user);
     if (!user) {
