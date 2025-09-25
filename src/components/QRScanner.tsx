@@ -52,11 +52,6 @@ export const QRScanner = ({ onScan, isActive = false }: QRScannerProps) => {
     try {
       console.log('Starting QR scanner...');
       
-      // Request camera permission first
-      await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' } 
-      });
-
       qrScannerRef.current = new QrScanner(
         videoRef.current,
         (result) => {
@@ -71,6 +66,7 @@ export const QRScanner = ({ onScan, isActive = false }: QRScannerProps) => {
         {
           highlightScanRegion: true,
           preferredCamera: 'environment',
+          maxScansPerSecond: 5,
         }
       );
 
@@ -82,12 +78,14 @@ export const QRScanner = ({ onScan, isActive = false }: QRScannerProps) => {
       console.error('Error starting QR scanner:', error);
       
       let errorMessage = "Failed to start camera scanner";
-      if (error.name === 'NotAllowedError') {
-        errorMessage = "Camera permission denied. Please allow camera access and try again.";
-      } else if (error.name === 'NotFoundError') {
-        errorMessage = "No camera found on this device.";
-      } else if (error.name === 'NotSupportedError') {
-        errorMessage = "Camera not supported on this device.";
+      if (error && typeof error === 'object' && 'name' in error) {
+        if (error.name === 'NotAllowedError') {
+          errorMessage = "Camera permission denied. Please allow camera access and try again.";
+        } else if (error.name === 'NotFoundError') {
+          errorMessage = "No camera found on this device.";
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage = "Camera not supported on this device.";
+        }
       }
       
       toast({
@@ -141,8 +139,9 @@ export const QRScanner = ({ onScan, isActive = false }: QRScannerProps) => {
           <div className="relative aspect-square max-w-sm mx-auto bg-muted rounded-lg overflow-hidden">
             <video
               ref={videoRef}
-              className="w-full h-full object-cover"
-              style={{ display: isScanning ? 'block' : 'none' }}
+              className={`w-full h-full object-cover ${isScanning ? 'block' : 'hidden'}`}
+              playsInline
+              muted
             />
             {!isScanning && (
               <div className="absolute inset-0 flex items-center justify-center">
